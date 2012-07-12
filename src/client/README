@@ -1,0 +1,11 @@
+LIST OF THINGS TO CONSIDER BASED ON SERVERSIDE CHOICES
+
+1. When you draw a point, everybody gets the message saying that point was drawn (including the person who drew it)
+
+2. Same thing with chat messages
+
+3. Same thing when a player joins
+
+4. FOR CANVAS, you send X,Y coordinates. is top left 0,0?
+
+5. PLEASE FIX FRAME INPUTSTREAM

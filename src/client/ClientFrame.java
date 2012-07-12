@@ -1,0 +1,519 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+/*
+ * ClientFrame.java
+ *
+ * Created on Apr 22, 2010, 1:15:14 PM
+ */
+
+package client;
+
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.lang.reflect.InvocationTargetException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Random;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.ButtonModel;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.DefaultListModel;
+import javax.swing.JList;
+import javax.swing.SwingUtilities;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Style;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
+
+/**
+ *
+ * @author jdl3
+ */
+public class ClientFrame extends javax.swing.JFrame {
+
+    private Client client;
+    private DefaultListModel playerModel;
+    private PictionaryCanvas canvas;
+
+    private Point lastPoint = null;
+    private Player popupPlayer = null;
+
+    private StyledDocument chatDoc;
+    private Style chatStyle;
+
+    private DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+    private Random rand = new Random();
+
+    private Color curColor = Color.BLACK;
+    private Action colorAction = new AbstractAction() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            curColor = Color.decode(e.getActionCommand());
+        }
+    };
+    private boolean shiftPressed=false;
+
+    /** Creates new form ClientFrame */
+    public ClientFrame(Client client) {
+        this.client = client;
+        playerModel = new DefaultListModel();
+        canvas = new PictionaryCanvas();
+
+        initComponents();
+
+        chatDoc = (StyledDocument) chatPane.getDocument();
+        chatStyle = chatDoc.addStyle("chatBase", null);
+    }
+
+    public void addPlayer(final Player player) {
+
+        try {
+            SwingUtilities.invokeAndWait(new Runnable() {
+                @Override
+                public void run() {
+                    playerModel.addElement(player);
+                    Style style = chatDoc.addStyle(player.name, chatStyle);
+
+                    Color playerColor = new Color(
+                            Color.HSBtoRGB(rand.nextFloat()*0.75f + 0.25f, 1.0f, 0.75f));
+                    StyleConstants.setForeground(style, playerColor);
+                }
+            });
+        } catch (InvocationTargetException ex) {
+            ex.printStackTrace();
+            // Meh?
+        } catch ( InterruptedException ex ) {
+            ex.printStackTrace();
+            // Meh?
+        }
+    }
+
+    public void removePlayer(final Player player) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                playerModel.removeElement(player);
+            }
+        });
+    }
+    
+    public void setDrawSize(final int x, final int y) {
+    	try {
+			SwingUtilities.invokeAndWait(new Runnable() {
+				@Override
+				public void run() {
+			    	canvas.setDrawSize(x, y);
+				}
+			});
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			e.printStackTrace();
+		}
+    }
+    
+    public void resetDrawing() {
+    	canvas.resetCanvas();
+    }
+
+    public void chatReceived(Player player, String message) {
+        printMessage(player, player.name + ": " + message);
+    }
+
+    public void kickVoteRecieved(Player kicker, Player kickee) {
+        printMessage(kicker, kicker.name + " votes to kick " + kickee.name);
+    }
+
+    public void printMessage(final Player sender, final String message) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    String txt = String.format(
+                            "[%s] %s\n",
+                            dateFormat.format(new Date()),
+                            message);
+
+                    chatDoc.insertString(
+                            chatDoc.getLength(),
+                            txt,
+                            chatDoc.getStyle(sender.name)
+                            );
+                } catch (BadLocationException ex) {
+                    ex.printStackTrace();
+                    // Meh?
+                }
+            }
+        });
+    }
+
+    public void pointDrawn(int x, int y) {
+    	canvas.drawPoint(x, y);
+    }
+
+    public void updateTime(int seconds) {
+        timerLabel.setText(seconds + "");
+    }
+
+    public void roundEnd() {
+        timerLabel.setText("Round End");
+    }
+
+    /** This method is called from within the constructor to
+     * initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is
+     * always regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+        java.awt.GridBagConstraints gridBagConstraints;
+
+        playerListMenu = new javax.swing.JPopupMenu();
+        kudosMenuButton = new javax.swing.JMenuItem();
+        kickMenuButton = new javax.swing.JMenuItem();
+        colorChoice = new javax.swing.ButtonGroup();
+        inputPanel = new javax.swing.JPanel();
+        buttonPanel = new javax.swing.JPanel();
+        chatButton = new javax.swing.JButton();
+        guessButton = new javax.swing.JButton();
+        textFieldPanel = new javax.swing.JPanel();
+        inputField = new javax.swing.JTextField();
+        mainSplit = new javax.swing.JSplitPane();
+        leftSplit = new javax.swing.JSplitPane();
+        javax.swing.JPanel pCanvas = canvas;
+        chatPaneScroll = new javax.swing.JScrollPane();
+        chatPane = new javax.swing.JTextPane();
+        playerListScroll = new javax.swing.JScrollPane();
+        playerList = new javax.swing.JList();
+        drawControls = new javax.swing.JToolBar();
+        blackChoice = new javax.swing.JToggleButton();
+        redChoice = new javax.swing.JToggleButton();
+        blueChoice = new javax.swing.JToggleButton();
+        timerBar = new javax.swing.JToolBar();
+        timerLabel = new javax.swing.JLabel();
+
+        kudosMenuButton.setText("Kudos!");
+        kudosMenuButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                kudosAction(evt);
+            }
+        });
+        playerListMenu.add(kudosMenuButton);
+
+        kickMenuButton.setText("Kick!");
+        kickMenuButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                kickAction(evt);
+            }
+        });
+        playerListMenu.add(kickMenuButton);
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+
+        inputPanel.setLayout(new java.awt.BorderLayout());
+
+        chatButton.setText("Chat");
+        chatButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                chatAction(evt);
+            }
+        });
+        buttonPanel.add(chatButton);
+
+        guessButton.setText("Guess");
+        guessButton.setToolTipText("Keyboard ");
+        guessButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                guessAction(evt);
+            }
+        });
+        buttonPanel.add(guessButton);
+
+        inputPanel.add(buttonPanel, java.awt.BorderLayout.LINE_END);
+
+        textFieldPanel.setPreferredSize(new java.awt.Dimension(453, 0));
+        textFieldPanel.setLayout(new java.awt.GridBagLayout());
+
+        inputField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                textInputAction(evt);
+            }
+        });
+        inputField.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                inputFieldKeyPressed(evt);
+            }
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                inputFieldKeyReleased(evt);
+            }
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                inputFieldKeyTyped(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
+        textFieldPanel.add(inputField, gridBagConstraints);
+
+        inputPanel.add(textFieldPanel, java.awt.BorderLayout.CENTER);
+
+        getContentPane().add(inputPanel, java.awt.BorderLayout.PAGE_END);
+
+        leftSplit.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+
+        pCanvas.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mousePressed(java.awt.event.MouseEvent evt) {
+                pCanvasPress(evt);
+            }
+            public void mouseReleased(java.awt.event.MouseEvent evt) {
+                pCanvasRelease(evt);
+            }
+        });
+        pCanvas.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+            public void mouseDragged(java.awt.event.MouseEvent evt) {
+                pCanvasDrag(evt);
+            }
+        });
+        leftSplit.setTopComponent(pCanvas);
+
+        chatPane.setEditable(false);
+        chatPane.setPreferredSize(new java.awt.Dimension(6, 60));
+        chatPane.setRequestFocusEnabled(false);
+        chatPaneScroll.setViewportView(chatPane);
+
+        leftSplit.setRightComponent(chatPaneScroll);
+
+        mainSplit.setLeftComponent(leftSplit);
+
+        playerList.setModel(playerModel);
+        playerList.setCellRenderer(new PlayerListCellRendered());
+        playerList.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mousePressed(java.awt.event.MouseEvent evt) {
+                listPopupListener(evt);
+            }
+            public void mouseReleased(java.awt.event.MouseEvent evt) {
+                listPopupListener(evt);
+            }
+        });
+        playerListScroll.setViewportView(playerList);
+
+        mainSplit.setRightComponent(playerListScroll);
+
+        getContentPane().add(mainSplit, java.awt.BorderLayout.CENTER);
+
+        drawControls.setRollover(true);
+
+        blackChoice.setAction(colorAction);
+        colorChoice.add(blackChoice);
+        blackChoice.setSelected(true);
+        blackChoice.setText("Black");
+        blackChoice.setActionCommand("0x000000");
+        blackChoice.setFocusable(false);
+        blackChoice.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        blackChoice.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        drawControls.add(blackChoice);
+
+        redChoice.setAction(colorAction);
+        colorChoice.add(redChoice);
+        redChoice.setForeground(new java.awt.Color(255, 0, 0));
+        redChoice.setText("Red");
+        redChoice.setActionCommand("0xFF0000");
+        redChoice.setFocusable(false);
+        redChoice.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        redChoice.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        drawControls.add(redChoice);
+
+        blueChoice.setAction(colorAction);
+        colorChoice.add(blueChoice);
+        blueChoice.setForeground(new java.awt.Color(0, 0, 255));
+        blueChoice.setText("Blue");
+        blueChoice.setActionCommand("0x0000FF");
+        blueChoice.setFocusable(false);
+        blueChoice.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        blueChoice.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        drawControls.add(blueChoice);
+
+        timerBar.setRollover(true);
+
+        timerLabel.setText("Round End");
+        timerBar.add(timerLabel);
+
+        drawControls.add(timerBar);
+
+        getContentPane().add(drawControls, java.awt.BorderLayout.NORTH);
+
+        pack();
+    }// </editor-fold>//GEN-END:initComponents
+
+    private void pCanvasDrag(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pCanvasDrag
+        evt.translatePoint(-canvas.getXOff(), -canvas.getYOff());
+
+        if (lastPoint == null) {
+            canvas.drawPoint(evt.getX(), evt.getY());
+            client.writePoint(evt.getX(), evt.getY());
+        } else {
+            drawLine(lastPoint, evt.getPoint());
+        }
+
+        lastPoint = evt.getPoint();
+        canvas.repaint();
+}//GEN-LAST:event_pCanvasDrag
+
+    private void pCanvasPress(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pCanvasPress
+        evt.translatePoint(-canvas.getXOff(), -canvas.getYOff());
+
+        lastPoint = evt.getPoint();
+        client.writePoint(evt.getX(), evt.getY());
+
+        canvas.drawPoint(evt.getX(), evt.getY());
+        canvas.repaint();
+}//GEN-LAST:event_pCanvasPress
+
+    private void pCanvasRelease(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pCanvasRelease
+        evt.translatePoint(-canvas.getXOff(), -canvas.getYOff());
+
+        drawLine(lastPoint, evt.getPoint());
+        lastPoint = null;
+        canvas.repaint();
+}//GEN-LAST:event_pCanvasRelease
+
+    private void listPopupListener(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_listPopupListener
+        if( evt.isPopupTrigger() ) {
+            int playerIdx = playerList.locationToIndex(evt.getPoint());
+            playerList.setSelectedIndex(playerIdx);
+
+            if ( playerIdx >= 0 ) {
+                popupPlayer = (Player) playerModel.get(playerIdx);
+                playerListMenu.show(playerList, evt.getX(), evt.getY() );
+            }
+        }
+    }//GEN-LAST:event_listPopupListener
+
+    private void kudosAction(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_kudosAction
+        client.sendChatMessage("Kudos, " + popupPlayer.name + "!");
+    }//GEN-LAST:event_kudosAction
+
+    private void kickAction(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_kickAction
+        client.sendKickRequest(popupPlayer);
+    }//GEN-LAST:event_kickAction
+
+    private void textInputAction(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_textInputAction
+        chatButton.doClick();
+    }//GEN-LAST:event_textInputAction
+
+    private void chatAction(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chatAction
+        client.sendChatMessage(inputField.getText());
+        inputField.setText("");
+    }//GEN-LAST:event_chatAction
+
+    private void guessAction(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_guessAction
+        client.sendGuess(inputField.getText());
+        inputField.setText("");
+    }//GEN-LAST:event_guessAction
+
+    private void inputFieldKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_inputFieldKeyPressed
+       shiftPressed=true;
+    }//GEN-LAST:event_inputFieldKeyPressed
+
+    private void inputFieldKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_inputFieldKeyReleased
+        shiftPressed=false;
+    }//GEN-LAST:event_inputFieldKeyReleased
+
+    private void inputFieldKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_inputFieldKeyTyped
+       if(evt.getKeyCode()==evt.VK_ENTER&&shiftPressed)
+           guessButton.doClick();
+    }//GEN-LAST:event_inputFieldKeyTyped
+
+    private void drawLine(Point p1, Point p2) {
+        int tx = p1.x, ty = p1.y;
+        int dx = (int) Math.signum(p2.x - p1.x);
+
+        double slopeX = ((double) p2.y - p1.y) / (p2.x - p1.x);
+
+        canvas.drawPoint(tx, ty);
+        while (tx != p2.x) {
+            tx += dx;
+            ty = (int) Math.round(slopeX*(tx-p1.x) + p1.y);
+
+            canvas.drawPoint(tx, ty, curColor);
+            client.writePoint(tx, ty);
+        }
+
+        tx = p1.x; ty = p1.y;
+        int dy = (int) Math.signum(p2.y - p1.y);
+
+        double slopeY = ((double) p2.x - p1.x) / (p2.y - p1.y);
+
+        while (ty != p2.y) {
+            ty += dy;
+            tx = (int) Math.round(slopeY*(ty-p1.y) + p1.x);
+
+            canvas.drawPoint(tx, ty, curColor);
+            client.writePoint(tx, ty);
+        }
+    }
+
+    private class PlayerListCellRendered extends DefaultListCellRenderer {
+
+        public final Color HIGHLIGHT_COLOR = new Color(0xFFFFCC);
+
+        @Override
+        public Component getListCellRendererComponent(JList list, Object value,
+                                                int index, boolean isSelected,
+                                                boolean cellHasFocus) {
+            // Returns this.
+            super.getListCellRendererComponent(list, value, index,
+                                         isSelected, cellHasFocus);
+            Player player = (Player) value;
+
+            if ( player.drawer ) {
+                Color oldBack = getBackground();
+                setBackground(new Color(
+                        (oldBack.getRed() + HIGHLIGHT_COLOR.getRed())/2,
+                        (oldBack.getGreen() + HIGHLIGHT_COLOR.getGreen())/2,
+                        (oldBack.getBlue() + HIGHLIGHT_COLOR.getBlue())/2)
+                        );
+            }
+
+            setText(getText() + " (" + player.score + ")");
+
+            return this;
+        }
+
+    }
+    
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JToggleButton blackChoice;
+    private javax.swing.JToggleButton blueChoice;
+    private javax.swing.JPanel buttonPanel;
+    private javax.swing.JButton chatButton;
+    private javax.swing.JTextPane chatPane;
+    private javax.swing.JScrollPane chatPaneScroll;
+    private javax.swing.ButtonGroup colorChoice;
+    private javax.swing.JToolBar drawControls;
+    private javax.swing.JButton guessButton;
+    private javax.swing.JTextField inputField;
+    private javax.swing.JPanel inputPanel;
+    private javax.swing.JMenuItem kickMenuButton;
+    private javax.swing.JMenuItem kudosMenuButton;
+    private javax.swing.JSplitPane leftSplit;
+    private javax.swing.JSplitPane mainSplit;
+    private javax.swing.JList playerList;
+    private javax.swing.JPopupMenu playerListMenu;
+    private javax.swing.JScrollPane playerListScroll;
+    private javax.swing.JToggleButton redChoice;
+    private javax.swing.JPanel textFieldPanel;
+    private javax.swing.JToolBar timerBar;
+    private javax.swing.JLabel timerLabel;
+    // End of variables declaration//GEN-END:variables
+
+}

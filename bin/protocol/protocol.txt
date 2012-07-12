@@ -1,0 +1,164 @@
+Fill in the following to receive credit for this studio:
+
+    * Game your group is interested in implementing: Pictionary
+
+    * Unique name for your implementation (small) group: Competitive Paint
+
+    * Your group's perspective in this document is from the 
+      following side (specify one):
+          o Server X
+          o Client 
+
+
+    * Names of the people in your implementation group:
+            Last Name        Last 3 ID Digs
+			Little				673
+			Julia				954
+			Dumey				234	
+			Anderson			728
+			Holmes				187
+
+____________________________________
+Feature Discussion:
+
+What features do you plan for your game?
+   [ If you are doing Kassle, The Game, then be sure to 
+     consider the extra features that you will implement
+   ]
+
+	One (or more?) players (concurrently?) drawing on a
+	canvas, which is transmitted to everyone in the game
+	in real-time.
+	
+	The drawers have specific words they are supposed to
+	draw.
+	
+	The rest of the people's job is to guess what the
+	drawers are drawing.
+	
+	When someone guesses the word correctly, they get a
+	point, and the drawer gets a point.
+	
+	There is a time-limit for guessing a particular word.
+
+	There shall be a chat feature.
+
+___________________________________
+
+**Use port number 3500**
+
+Message types and formats:
+
+Note: Payload parts are always sent in the order they are listed.
+	Also, Frames use standard format discussed in class (asterisk, message type, payload length, payload)
+
+	1. Draw point messages
+		1a. Client => Server (type 1)
+			Payload: 4 bytes, 2 each for x- and y-coordinates 
+			Desc: Player draws point specified.
+		1b. Server => Client (type 2)
+			Payload: 5 bytes, 1 for client id,
+					 2 each for x- and y-coordinates
+			Description: Specified player drew specified point.
+
+	2. Chat messages
+		2a. Client => Server (type 3)
+			Payload: n bytes, UTF-8 encoded string
+			Desc: Player sends chat message to everyone.
+		2b. Server => Client (type 4)
+			Payload: 1 byte for player id,
+					 n bytes, UTF-8 encoded string
+			Desc: Chat message received from player.
+		
+	3. Guess messages
+		3a. Guess (Client => Server) (type 5)
+			Payload: n bytes, UTF-8 encoded string
+			Desc: Player guesses supplied word.
+		3b. Guess incorrect (Server => Client) (type 6)
+			Payload: none
+			Desc: Player's guess was incorrect.
+			
+		
+	4. Game messages
+		4a. Join game (Client => Server) (type 7)
+			Payload: n bytes, UTF-8 encoded string
+			Desc: Player's name.
+		4b. Player joined (Server => Client) (type 8)
+			Payload: 1 byte, player id
+			n bytes, UTF-8 encoded string (player name)					 
+			Desc: Player's name and id.
+		4c. Server full (Server => Client) (type 9)
+			Payload: empty
+			Desc: Server is full, goodbye
+		4d. Canvas size (Server => Joiner) (type 10)
+			Payload: 4 bytes, 2 each for x- and y-sizes
+			Desc: Size of the canvas.
+		4e. Leave game (Client => Server) (type 11)
+			Payload: none
+			Desc: Player leaves game
+		4f. Player left (Server => Client) (type 12)
+			Payload: 1 byte, player id
+			Desc: Player left game
+		
+	5. Round messages
+		5a. Round begin (Server => Client) (type 13)
+			Payload: none
+			Desc: Round has begun
+		5b. Drawers are (Server => Clients) (type 14)
+			Payload: n bytes, 1 per player id
+			Desc: The list of drawers
+		5c. Word is (Server => Drawer) (type 15)
+			Payload: n bytes, UTF-8 encoded string
+			Desc: The word to draw
+		5d. Round end (Server => Client)
+			5d.i.  Correct guess (type 16)
+				Payload: 1 byte client id + n bytes UTF-8 encoded correct word
+				Desc: Player who guessed correctly and the word
+			5d.ii. Time over (type 17)
+				Payload: n bytes UTF-8 encoded correct word
+				Desc: Time ran out, no one guessed correctly. Send correct word
+			5d.iii. Game State (type 18)
+				Payload: n player ids + n (one-byte) scores
+	
+
+Dialog descriptions:
+	
+	Client => Server: Join Game "playername"
+	
+	If server is FULL:
+	Server => Client: Server full, goodbye.
+	
+	ELSE:
+	Server => Clients: Join Game <one byte player id> "playername"
+	Server => Client: Canvas Size <two bytes x> <two bytes y>
+	// client has to wait for the round end
+	
+	LOOP until player leaves:
+	Server => Clients: Round End
+							(Correct Guess <client id> <word>, or
+							Time Over <word>), and
+							Game State n <player id> + <score>
+	Server => Clients: Drawers are n <player ids>
+	// Pause here for 5-10 seconds?
+	Server => Clients: Round Begin
+	Server => Drawers: Word Is <word>
+	BRANCH: Client either draws or guesses
+	
+	
+	DRAWING:
+	Client => Server: Draw Point <x> <y>
+	//repeat as necessary
+	
+	then GUESSING:
+	Client => Server: Guess <guess>
+	Server => Client: Incorrect Guess // Possibly, or round ends.
+	//repeat as necessary
+	
+	Any at any time:
+	Client => Server: Leave Game
+	Server => Clients: Left Game <player ID>
+	Client => Server: Chat <message>
+	Server => Clients: Chat <player id> <message>
+
+
+
